@@ -43,7 +43,7 @@ $ cargo run -- --help
 
 Converts MP4 videos to MCAP
 
-Usage: mp42mcap [OPTIONS] <INPUT> <OUTPUT>
+Usage: mp42mcap [OPTIONS] <INPUT> <OUTPUT>  --topic="/test/abc" --initial-timestamp=1736850000000
 
 Arguments:
   <INPUT>   Input MP4 file
@@ -55,3 +55,6 @@ Options:
   -h, --help                 Print help
   -V, --version              Print version
 ```
+
+
+

@@ -372,10 +372,15 @@ impl VideoConverter {
         Ok(())
     }
 
-    pub fn get_timestamp(&self, pts: i64) -> u64 {
-        (pts as f64 * self.time_base_num as f64 / self.time_base_den as f64 * 1_000_000_000.0)
-            as u64
-    }
+    pub fn get_timestamp(&self, pts: i64, initial_timestamp: i64) -> u64 {
+		// 使用 f64 类型进行计算，并考虑 initial_timestamp
+		let timestamp_ns = (pts as f64 * self.time_base_num as f64 / self.time_base_den as f64 * 1_000_000_000.0) as u64;
+		let initial_ns = (initial_timestamp as f64 * 1_000_000.0) as u64;
+
+		// 返回加上初始时间戳后的结果
+		timestamp_ns + initial_ns
+	}
+
 
     pub fn check_timestamp(&mut self, timestamp_ns: u64) -> Result<(), Box<dyn Error>> {
         if timestamp_ns <= self.last_timestamp && self.last_timestamp != u64::MAX {

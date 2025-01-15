@@ -16,7 +16,7 @@ use prost::Message;
 pub mod foxglove {
     include!(concat!(env!("OUT_DIR"), "/foxglove.rs"));
 }
-use foxglove::CompressedVideo;
+use foxglove::{CompressedVideo, KeyValuePair};
 
 mod codec;
 use codec::VideoConverter;
@@ -44,6 +44,10 @@ struct Cli {
     /// Frame ID for the video messages
     #[arg(long, default_value = "video")]
     frame_id: String,
+
+	/// Initial timestamp (in seconds)
+    #[arg(long, default_value_t = 0)]
+    initial_timestamp: i64,  // The initial timestamp in seconds
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -73,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
 
-        let timestamp_ns = converter.get_timestamp(packet.pts().unwrap_or(0));
+        let timestamp_ns = converter.get_timestamp(packet.pts().unwrap_or(0), cli.initial_timestamp);
         converter.process_packet(&packet, first_frame)?;
         converter.send_packet(&packet)?;
 
@@ -86,16 +90,42 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 converter.check_timestamp(timestamp_ns)?;
 
+                // Construct metadata as a Vec<KeyValuePair>
+                let metadata = vec![
+                    KeyValuePair {
+                        key: "codec".to_string(),
+                        value: "hevc".to_string(),
+                    },
+                    KeyValuePair {
+                        key: "codedWidth".to_string(),
+                        value: "3840".to_string(),
+                    },
+                    KeyValuePair {
+                        key: "codedHeight".to_string(),
+                        value: "2160".to_string(),
+                    },
+                    KeyValuePair {
+                        key: "scale".to_string(),
+                        value: "1".to_string(),
+                    },
+                ];
+
+                // Construct the CompressedVideo message
                 let message = CompressedVideo {
+                    transmission_header: None, // Wrap in Option::None
+                    time_header: None, // Wrap in Option::None
+                    sensor_header: None, // Wrap in Option::None
                     frame_id: cli.frame_id.clone(),
                     timestamp: Some(prost_types::Timestamp {
                         seconds: (timestamp_ns / 1_000_000_000) as i64,
                         nanos: (timestamp_ns % 1_000_000_000) as i32,
                     }),
                     data: converter.take_frame_data(),
-                    format: converter.format_str().to_string(),
+                    metadata, // Use the constructed metadata
+                    keyframe: true,
                 };
 
+                // Encode and write the message
                 let encoded = message.encode_to_vec();
                 writer.write_to_known_channel(
                     &MessageHeader {
