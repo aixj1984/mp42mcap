@@ -24,6 +24,7 @@ export RUST_BACKTRACE=1
 apt-get install libavfilter-dev
 apt-get install libavdevice-dev
 apt-get install clang libclang-dev llvm-dev
+apt-get install libavdevice-dev
 ```
 
 ## 编译
