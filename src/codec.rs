@@ -373,11 +373,11 @@ impl VideoConverter {
     }
 
     pub fn get_timestamp(&self, pts: i64, initial_timestamp: i64) -> u64 {
-		// Ê¹ÓÃ f64 ÀàĞÍ½øĞĞ¼ÆËã£¬²¢¿¼ÂÇ initial_timestamp
+		// ä½¿ç”¨ f64 ç±»å‹è¿›è¡Œè®¡ç®—ï¼Œå¹¶è€ƒè™‘ initial_timestamp
 		let timestamp_ns = (pts as f64 * self.time_base_num as f64 / self.time_base_den as f64 * 1_000_000_000.0) as u64;
 		let initial_ns = (initial_timestamp as f64 * 1_000_000.0) as u64;
 
-		// ·µ»Ø¼ÓÉÏ³õÊ¼Ê±¼ä´ÁºóµÄ½á¹û
+		// è¿”å›åŠ ä¸Šåˆå§‹æ—¶é—´æˆ³åçš„ç»“æœ
 		timestamp_ns + initial_ns
 	}
 
